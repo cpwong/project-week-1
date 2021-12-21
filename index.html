@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&family=Play&family=Russo+One&display=swap" rel="stylesheet">
+  <script defer src="index.js"></script>
+  <link rel="stylesheet" href="index.css">
+  <title>NTU-SDI Project - Battleships Game</title>
+
+</head>
+
+<body>
+  <div class='container-grid'>
+    <div class='title highlight'>Battleships!</div>
+    <!-- Headers  -->
+    <div class='h1'>Player</div>
+    <div class='h1' id="human-score">0</div>
+    <div class='h1'>Score</div>
+    <div class='h1'id='cpu-score'>0</div>
+    <div class='h1'>Computer</div>
+    <!-- User Board  -->
+    <div class='board' id='human-board'></div>
+    <!-- Score and statistics  -->
+    <div class='stats'>
+      <div id='h-stat-0'></div>
+      <div id='type-0'>Carrier</div>
+      <div id='c-stat-0'></div>
+      <div id='h-stat-1'></div>
+      <div id='type-1'>Battleship</div>
+      <div id='c-stat-1'></div>
+      <div id='h-stat-2'></div>
+      <div id='type-2'>Destroyer</div>
+      <div id='c-stat-2'></div>
+      <div id='h-stat-3'></div>
+      <div id='type-3'>Frigate</div>
+      <div id='c-stat-3'></div>
+      <div id='h-stat-4'></div>
+      <div id='type-4'>Submarine</div>
+      <div id='c-stat-4'></div>
+    </div>
+    <!-- Computer Board  -->
+    <div class='board' id='cpu-board'></div>
+    <!-- Footer  -->
+    <div class='footer'>
+      <button id='play-btn'>Play</button>
+      <button id='show-btn'>Show Fleet</button>
+      <button id='generate-btn'>Generate Fleet</button>
+      <button id='reset-btn'>Reset</button>
+    </div>
+  </div>
+</body>
+
+</html>
