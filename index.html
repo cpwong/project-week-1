@@ -11,18 +11,17 @@
   <script defer src="index.js"></script>
   <link rel="stylesheet" href="index.css">
   <title>NTU-SDI Project - Battleships Game</title>
-
 </head>
 
 <body>
   <div class='container-grid'>
     <div class='title highlight'>Battleships!</div>
     <!-- Headers  -->
-    <div class='h1'>Player</div>
-    <div class='h1' id="human-score">0</div>
+    <div class='h1' id='human-title'>Player</div>
+    <div class='h1' id="human-score"></div>
     <div class='h1'>Score</div>
-    <div class='h1'id='cpu-score'>0</div>
-    <div class='h1'>Computer</div>
+    <div class='h1'id='cpu-score'></div>
+    <div class='h1' id='cpu-title'>Computer</div>
     <!-- User Board  -->
     <div class='board' id='human-board'></div>
     <!-- Score and statistics  -->
@@ -47,7 +46,7 @@
     <div class='board' id='cpu-board'></div>
     <!-- Footer  -->
     <div class='footer'>
-      <button id='play-btn'>Play</button>
+      <button id='test-btn'>Test</button>
       <button id='show-btn'>Show Fleet</button>
       <button id='generate-btn'>Generate Fleet</button>
       <button id='reset-btn'>Reset</button>
