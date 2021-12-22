@@ -1,0 +1,163 @@
+/*-------------------
+  General tag styling
+---------------------*/
+body {
+  font-family: 'Orbitron', sans-serif;
+  color: #ffffff;
+  background-color: #00000077;
+  background-image: url('../img/wallpaper.jpg');
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-blend-mode: darken;
+  caret-color: transparent;
+}
+button {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 24px;
+  padding: 15px 25px;
+  margin: auto 15px;
+  border-radius: 5px;
+  box-shadow: 3px 3px 3px #000;
+}
+/* div {
+  background-color: cyan;
+  border: 1px solid black;
+} */
+/*----------------------------------------------------------
+  Classes for headings, instead of <h1>, <h2>, <h...> tags
+  Misc classes
+-----------------------------------------------------------*/
+.title {
+  font-family: 'Black Ops One', sans-serif;
+  font-size: 64px;
+  color: #51ff00;
+  text-align: center;
+  text-shadow: 3px 3px 1px #000;
+}
+.h1 {
+  font-size: 32px;
+  text-align: center;
+  text-shadow: 3px 3px 1px #000;
+}
+.hidden {
+  display: none;
+}
+.no-events {
+  pointer-events: none;
+}
+/*--------------------------------
+  Flash animation for board tiles 
+---------------------------------*/
+.flash {
+  animation: blink 0.5s infinite both;
+}
+@keyframes blink {
+  0%,
+  50%,
+  100% {
+    opacity: 1;
+  }
+  25%,
+  75% {
+    opacity: 0;
+  }
+}
+/*-----------------------
+  Tile background colors
+------------------------*/
+.winner {
+  background-color: #fff12f;
+}
+.hit {
+  background-color: #ff0000;
+  color: #ffffff;
+  font-size: 30px;
+  text-align: center;
+}
+.miss {
+  background-color: #1515c3;
+  color: #ffffff;
+}
+.ship {
+  background-color: #009900;
+  font-size: 30px;
+  text-align: center;
+}
+/*-------------------------- 
+  Classes for screen layout  
+---------------------------*/
+.container-grid {
+  display: grid;
+  grid-template-columns: 520px 50px 150px 50px 520px; 
+  grid-template-rows: 80px 50px 520px 100px;
+  padding: 10px;
+}
+.header {
+  text-align: center;
+  grid-column: 1 / 6;
+}
+.board {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  grid-template-rows: repeat(10, 1fr);
+  background-color: #c5faff;
+  border: 3px solid #3a3a3a;
+  border-radius: 7px;
+  margin: 5px;
+}
+.board div {
+  border: 1px solid #6e6e6e;
+}
+.stats {
+  display: grid;
+  grid-column: 2 / 5;
+  grid-template-columns: 50px 150px 50px;
+  grid-template-rows: repeat(5, 102px);
+  margin: 5px 0;
+  text-align: center;
+  align-items: bottom;
+  /* border: 1pt solid black; */
+}
+.footer {
+  grid-column: 1 / 6;
+  text-align: center;
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+/*--------------------------- 
+  Grid tiles for ship details
+---------------------------*/
+.ship-type {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 45px 25px 30px;
+}
+.ship-type div {
+  align-self: end;
+}
+.ship-type img {
+  filter: drop-shadow(3px 3px 1px #000);
+}
+.ship-label {
+  font-size: 16px;
+  text-shadow: 3px 3px 1px #000;
+  line-height: 20px;
+}
+.ship-stat {
+  display: flex;
+}
+.ship-stat div {
+  background-color: #009900;
+  border: 1px solid black; 
+  height: 25px;
+  width: 25px;
+}
+.ship-count {
+  font-size: 22px;
+  font-weight: bold;
+  text-shadow: 3px 3px 1px #000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 2px; 
+}

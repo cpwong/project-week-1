@@ -7,49 +7,110 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&family=Play&family=Russo+One&display=swap" rel="stylesheet">
-  <script defer src="index.js"></script>
-  <link rel="stylesheet" href="index.css">
+  <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Orbitron&family=Play&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="src/index.css">
+  <link rel="stylesheet" href="src/pop-up.css">
+  <script defer src="src/index.js"></script>
   <title>NTU-SDI Project - Battleships Game</title>
 </head>
 
 <body>
-  <div class='container-grid'>
-    <div class='title highlight'>Battleships!</div>
+  <div class="container-grid">
+    <div class="title header">BATTLESHIPS!</div>
     <!-- Headers  -->
-    <div class='h1' id='human-title'>Player</div>
-    <div class='h1' id="human-score"></div>
-    <div class='h1'>Score</div>
-    <div class='h1'id='cpu-score'></div>
-    <div class='h1' id='cpu-title'>Computer</div>
+    <div class="h1" id="human-title">Player</div>
+    <div class="h1" id="human-score"></div>
+    <div class="h1">Score</div>
+    <div class="h1" id="cpu-score"></div>
+    <div class="h1" id="cpu-title">Computer</div>
     <!-- User Board  -->
-    <div class='board' id='human-board'></div>
-    <!-- Score and statistics  -->
-    <div class='stats'>
-      <div id='h-stat-0'></div>
-      <div id='type-0'>Carrier</div>
-      <div id='c-stat-0'></div>
-      <div id='h-stat-1'></div>
-      <div id='type-1'>Battleship</div>
-      <div id='c-stat-1'></div>
-      <div id='h-stat-2'></div>
-      <div id='type-2'>Destroyer</div>
-      <div id='c-stat-2'></div>
-      <div id='h-stat-3'></div>
-      <div id='type-3'>Frigate</div>
-      <div id='c-stat-3'></div>
-      <div id='h-stat-4'></div>
-      <div id='type-4'>Submarine</div>
-      <div id='c-stat-4'></div>
+    <div class="board" id="human-board"></div>
+    <!-- Fleet Statistics  -->
+    <div class="stats">
+      <div class="ship-count" id="h-stat-0"></div>
+      <div class="ship-type">
+        <div><img src="img/carrier.png" alt="ship" width=100%></div>
+        <div class="ship-label">Aircraft Carrier</div>
+        <div class="ship-stat">
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+        </div>
+      </div>
+      <div class="ship-count" id="c-stat-0"></div>
+      <div class="ship-count" id="h-stat-1"></div>
+      <div class="ship-type">
+        <div><img src="img/cruiser.png" alt="ship" width=85%></div>
+        <div class="ship-label">Cruiser</div>
+        <div class="ship-stat">
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+        </div>
+      </div>
+      <div class="ship-count" id="c-stat-1"></div>
+      <div class="ship-count" id="h-stat-2"></div>
+      <div class="ship-type">
+        <div><img src="img/destroyer.png" alt="ship" width=75%></div>
+        <div class="ship-label">Destroyer</div>
+        <div class="ship-stat">
+          <div></div>
+          <div></div>
+          <div></div>
+        </div>
+      </div>
+      <div class="ship-count" id="c-stat-2"></div>
+      <div class="ship-count" id="h-stat-3"></div>
+      <div class="ship-type">
+        <div><img src="img/frigate.png" alt="ship" width=60%></div>
+        <div class="ship-label">Frigate</div>
+        <div class="ship-stat">
+          <div></div>
+          <div></div>
+        </div>
+      </div>
+      <div class="ship-count" id="c-stat-3"></div>
+      <div class="ship-count" id="h-stat-4"></div>
+      <div class="ship-type">
+        <div><img src="img/submarine.png" alt="ship" width=60%></div>
+        <div class="ship-label">Submarine</div>
+        <div class="ship-stat">
+          <div></div>
+        </div>
+      </div>
+      <div class="ship-count" id="c-stat-4"></div>
     </div>
     <!-- Computer Board  -->
-    <div class='board' id='cpu-board'></div>
+    <div class="board" id="cpu-board"></div>
     <!-- Footer  -->
-    <div class='footer'>
-      <button id='test-btn'>Test</button>
-      <button id='show-btn'>Show Fleet</button>
-      <button id='generate-btn'>Generate Fleet</button>
-      <button id='reset-btn'>Reset</button>
+    <div class="footer">
+      <button id="generate-btn">Generate Random Fleet</button>
+      <button class="hidden" id="reset-btn">Play Again</button>
+      <button class="hidden" id="test-btn">Test</button>
+      <!--  Pop-up box adapted from 
+            https://html-online.com/articles/simple-popup-box/ 
+      -->
+      <a id="trigger_popup_fricc">&#10068</a>
+      <div id="hover_bkgr_fricc">
+        <span class="helper"></span>
+        <div class="pop-up">
+          <div id="popupCloseButton">&times;</div>
+          <div>Welcome to Battleships!</div>
+          <hr>
+          <p>The objective of the game is to sink all the ships in your enemy's fleet.
+          <p>Each player starts with the same number of ships.</p>
+          <p>Fire at your enemy by clicking the tiles on the Computer's board.</p>
+          <p>Fire again if you hit any of your enemy's ship</p>
+          <p>Your turn ends if you miss</p>
+          <p>First player to reduce opponent's score to 0 wins!</p>
+          <hr>
+          <p>Start by clicking on any tiles on the right!</p>
+          </p>
+        </div>
+      </div>
     </div>
   </div>
 </body>
