@@ -29,19 +29,27 @@
   - Hit
   - Miss
   - Ship sunk
-- 'Play' button changes to 'Restart' during gameplay
 - Confirm to quit when player presses 'Restart'
  
 ### End game
-- Player/computer who sank all the opponents ships wins
+- Player/computer who sinks all the opponents ships wins
+- 'Restart' button appears when game ends
 - Press 'Restart' to play again
 
+![flowchart](flowchart.jpg)
+
 # Highlights
+- Javascript is a joy to work with!
+- Powerful DOM handling features
+- Wide variety of CSS styling options
+- Fast and stable V8 Javascript engine
 
 # Challenges
+- Scoping the project within limited time, e.g. reducing number of tiles to simplify testing
+- Javascript can be too forgiving! e.g. mixing strings and numbers when concatenating strings
+- Still getting used to CSS `display: grid, block, flex`
 
 # Lessons Learnt
-
 ## Use class to set element style
 
 Setting the style on the element:
@@ -57,20 +65,49 @@ element.classList.remove('hit');
   background-color: red;
 }
 ```
+## Concatenating strings and numbers with the `+` operator
+When using the `+` operator to join strings and numbers, JS automagically converts the numbers into a string before joining them together. However, when you need to do a mathematical operation in the same line, you might get some strange results.
+```js
+let char = 'A'
+let num = '1'
+let res1 = char + num               // = A1
+let res2 = char + num + 1           // = A2 or A11 ???
+let res3 = char + Number(num) + 1   // = A2
+let res4 = char + num + '1'         // = A11
+```
+Cast strings and numbers explicitly to guarantee expected results.
+
+## Data Abstraction
+Traditionally, each tile in the game is addressable as `{letter}{number}`, e.g. `B4` for ease of reference by user. Naturally, I decided to ID each tiles on the player's board using the same notation, so I can easily select elements on the DOM using its ID. 
+
+However, by using alphabets to represent the x-axis, it I had to keep switching to it's numerical format when I had to calculate new positons. This meant a lot of conversion code to support this.
+
+In hindsight, I should have used numerical coordinates to represent (x, y) and mapped it to its ID when selecting DOM elements.
+
+TBD!
+
 # Future
+## Show actual ships on board
+- Show graphics to represent type of ship
 
 ## Customisable ship positions
-- Player shall place ship pieces on player board
-- Click on ship type to select the ship to be placed
-- Highlight selected ship type text during placement
-- Mouseover to user's board to highlight valid tiles that can be placed on the board
-- Press 'R' to rotate pieces - compute suitable tiles to place ships
+- Start with random ship placement
+- Click on any ship on board to move it
+- When selected, show an outline of the ship move with pointer
+- Press 'R' to rotate ship 
+- Check for overlapping and out of bounds placement
 - Click on tile to place ship
-- Remove highlight to de-select ship
-- Incremement counter next to ship type
-- Repeat until all ships are placed
-- Click on any ship placed on board to move them
 
+## AI for Computer Player
+- Randomly pick any tile to fire on
+- If miss, keep searching randomly
+- If hit, focus fire on adjacent cells
+- If 2 consecutive tiles are hit, focus to single row/column
+- Keep firing until all ship tiles are hit
+
+## Online Play
+- 1-on-1 over LAN
+- Over internet
 
 # Code snippets
 ## Styling selected radio buttons 

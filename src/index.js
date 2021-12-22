@@ -408,15 +408,3 @@ function showTitleStatus(player, status) {
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
-
-// ----------- Handlers (WIP) ------------- //
-
-// Handler for ship selection from stats panel (create new ships)
-function handleCreateShip(el, type) {
-  console.log('handleCreateShip(...)', type);
-}
-
-// Handler for ship selection from human player board (move existing ships)
-function handleMoveShip(id) {
-  console.log('handleMoveShip(...)', id);
-}
