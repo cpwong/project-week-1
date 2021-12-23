@@ -76,7 +76,7 @@ class Player {
   shoot(id) {
     if (!isGameOn) {
       document.getElementById('generate-btn').classList.add('hidden');
-      document.getElementById('trigger_popup_fricc').innerHTML = '';
+      document.getElementById('reset-btn').classList.remove('hidden');
       isGameOn = true;
     }
     if (this.#vsBoard[id] === 0) {
