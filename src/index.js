@@ -29,6 +29,17 @@ const shipTypes = [{
   count: 1
 }]
 
+/* --------- Shorthand for document.querySelector() ------- */
+
+const qs = function(sel) {
+  const res = document.querySelectorAll(sel);
+  if (res.length > 1) {
+    return res;
+  } else {
+    return res[0];
+  }
+}
+
 let isGameOn = false;
 
 /* --------------- Class declaration -------------    
@@ -50,8 +61,74 @@ class Player {
     console.log('New Fleet object created, id =', id, this.#vsBoard);
     this.userId = id;
   }
+  // Returns a list of tiles (posList) where ship is placed in freeTiles 
+  #getRandomShipPosList(freeTiles, size) {
+    let posList = [];
+    let maskList = [];
+    let maskSet = new Set;
+    let success = false;
+    let attempts = 0;
+    let pre = this.userId[0];  // Prefix from userId, e.g. 'h' or 'c'
+    while (!success && attempts < 99) {
+      let testTile = 
+        freeTiles[Math.floor(Math.random() * freeTiles.length)]
+        .slice(1);  // Remove the prefix before regex      
+      let [x] = testTile.match(/\D+/gi);  // RegEx for non-digits
+      let [y] = testTile.match(/\d+/gi);  // RegEx for digits
+      
+      // Test horizontal placement with same letters (x-axis)
+      posList = [];
+      maskSet.clear();
+      success = true;
+      let yTest = y;
+      for (let j = 0; j < size; j++) {
+        let pos = pre + x + yTest;
+        if (!freeTiles.includes(pos)) {
+          success = false;
+        } else {
+          posList.push(pos);  
+          maskSet.add(pos);
+          maskSet.add(pre + x + (yTest < boardSize - 1 ? Number(yTest) + 1 : yTest));
+          maskSet.add(pre + x + (yTest > 0 ? Number(yTest) - 1 : yTest));
+          let i = charSet.indexOf(x);
+          maskSet.add(pre + (i < boardSize - 1 ? charSet[i + 1] : x) + yTest);
+          maskSet.add(pre + (i > 0 ? charSet[i - 1] : x) + yTest);
+        }
+        yTest++;
+      }
+      if (!success) {  
+        // Test vertical placement with same numbers (y-axis)
+        posList = [];
+        maskSet.clear();
+        success = true;
+        let xTest = x;
+        let i = charSet.indexOf(x);
+        for (let j = 0; j < size; j++) {
+          let pos = pre + xTest + y;
+          console.log('xTest, y =', pos);
+          if (!freeTiles.includes(pos)) {
+            success = false;
+          } else {
+            posList.push(pos);
+            maskSet.add(pos);  
+            maskSet.add(pre + x + (yTest < boardSize - 1 ? Number(yTest) + 1 : yTest));
+            maskSet.add(pre + x + (yTest > 0 ? Number(yTest) - 1 : yTest));
+            let i = charSet.indexOf(x);
+            maskSet.add(pre + (i < boardSize - 1 ? charSet[i + 1] : x) + yTest);
+            maskSet.add(pre + (i > 0 ? charSet[i - 1] : x) + yTest);
+            }
+          i++;
+          xTest = charSet[i];
+        }
+      }
+      attempts++;
+    }
+    maskList = new Array(...maskSet)  // Spread the set into an array
+    return { posList, maskList };     // Returns an object of 2 properties
+  }
   // Set all board properties to default value (0)
   initVsBoard(parent) {
+    console.log(parent);
     for (let y = 0; y < boardSize; y++) {
       for (let x = 0; x < boardSize; x++) {
         const divId = this.userId[0] + charSet[x] + y;
@@ -75,8 +152,8 @@ class Player {
   // Fire on tile and return status: 'hit'/'miss'/'tested'
   shoot(id) {
     if (!isGameOn) {
-      document.getElementById('generate-btn').classList.add('hidden');
-      document.getElementById('reset-btn').classList.remove('hidden');
+      qs('#generate-btn').classList.add('hidden');
+      qs('#reset-btn').classList.remove('hidden');
       isGameOn = true;
     }
     if (this.#vsBoard[id] === 0) {
@@ -129,7 +206,7 @@ class Player {
   showFleet() {
     for (const ship of this.#fleet) {
       for (const id of ship.posList) {
-        const el = document.getElementById(id)
+        const el = qs('#' + id);
         el.classList.add('ship');
         el.innerHTML = icon['anchor'];
       }
@@ -139,7 +216,7 @@ class Player {
   generateFleet() {
     this.#fleet = [];  // Clear all ships from fleet
     // Clear the board by resetting the backgroundColor
-    const divList = document.querySelectorAll('#' + this.userId + '-board div');
+    const divList = qs('#' + this.userId + '-board div');
     for (let div of divList) {
       div.classList.remove('hit', 'miss', 'ship');
       div.innerHTML = '';
@@ -164,84 +241,13 @@ class Player {
       }
     }
   }
-
-  // Returns a list of tiles (posList) where ship is placed in freeTiles 
-  #getRandomShipPosList(freeTiles, size) {
-    // console.log(freeTiles, size);
-    let posList = [];
-    let maskList = [];
-    let maskSet = new Set;
-    let success = false;
-    let attempts = 0;
-    let pre = this.userId[0];  // Prefix from userId, e.g. 'h' or 'c'
-    while (!success && attempts < 99) {
-      let testTile = 
-        freeTiles[Math.floor(Math.random() * freeTiles.length)]
-        .slice(1);  // Remove the prefix before regex      
-      let [x] = testTile.match(/\D+/gi);  // RegEx for non-digits
-      let [y] = testTile.match(/\d+/gi);  // RegEx for digits
-      // console.log(testTile);
-      
-      // Test horizontal placement with same letters (x-axis)
-      posList = [];
-      maskSet.clear();
-      success = true;
-      let yTest = y;
-      for (let j = 0; j < size; j++) {
-        let pos = pre + x + yTest;
-        // console.log('x, yTest =', pos);
-        if (!freeTiles.includes(pos)) {
-          success = false;
-        } else {
-          posList.push(pos);  
-          maskSet.add(pos);
-          maskSet.add(pre + x + (yTest < boardSize - 1 ? Number(yTest) + 1 : yTest));
-          maskSet.add(pre + x + (yTest > 0 ? Number(yTest) - 1 : yTest));
-          let i = charSet.indexOf(x);
-          maskSet.add(pre + (i < boardSize - 1 ? charSet[i + 1] : x) + yTest);
-          maskSet.add(pre + (i > 0 ? charSet[i - 1] : x) + yTest);
-          // console.log(maskSet);
-        }
-        yTest++;
-      }
-      if (!success) {  
-        // Test vertical placement with same numbers (y-axis)
-        posList = [];
-        maskSet.clear();
-        success = true;
-        let xTest = x;
-        let i = charSet.indexOf(x);
-        for (let j = 0; j < size; j++) {
-          let pos = pre + xTest + y;
-          // console.log('xTest, y =', pos);
-          if (!freeTiles.includes(pos)) {
-            success = false;
-          } else {
-            posList.push(pos);
-            maskSet.add(pos);  
-            maskSet.add(pre + x + (yTest < boardSize - 1 ? Number(yTest) + 1 : yTest));
-            maskSet.add(pre + x + (yTest > 0 ? Number(yTest) - 1 : yTest));
-            let i = charSet.indexOf(x);
-            maskSet.add(pre + (i < boardSize - 1 ? charSet[i + 1] : x) + yTest);
-            maskSet.add(pre + (i > 0 ? charSet[i - 1] : x) + yTest);
-            // console.log(maskSet);
-            }
-          i++;
-          xTest = charSet[i];
-        }
-      }
-      attempts++;
-    }
-    maskList = new Array(...maskSet)  // Spread the set into an array
-    return { posList, maskList };     // Returns an object of 2 properties
-  }
   // Updates score board after a hit and returns final score.
   updateScore() {
     const fleet = this.fleetStats;
     let sum = 0;  
     // Loop through each ship type and updates scores
     shipTypes.forEach((ship, i) => {
-      const el = document.getElementById(this.userId[0] + '-stat-' + i)
+      const el = qs('#' + this.userId[0] + '-stat-' + i)
       if (ship.type in fleet) {
         sum += fleet[ship.type];
         el.innerHTML = fleet[ship.type];
@@ -249,7 +255,7 @@ class Player {
         el.innerHTML = 0;
       }
     })
-    document.getElementById(this.userId + '-score').innerHTML = sum;
+    qs('#' + this.userId + '-score').innerHTML = sum;
     return sum;
   }
 }
@@ -264,18 +270,15 @@ window.onload = () => {
   console.log('Page loaded..');
 
   // Populate playing boards with div and assign id co-ordinates 
-  const boardList = document.getElementsByClassName('board');
-  let humanBoard = boardList[0];
-  let cpuBoard = boardList[1];
-  human.initVsBoard(humanBoard);
-  cpu.initVsBoard(cpuBoard);
+  human.initVsBoard(qs('#human-board'));
+  cpu.initVsBoard(qs('#cpu-board'));
 
   human.generateFleet();
   human.showFleet();
   human.updateScore();
 
   // Add event listeners to each div on CPU board
-  cpuBoard.querySelectorAll('div').forEach(el => {
+  qs('#cpu-board div').forEach(el => {
     const id = el.getAttribute('id');
     el.onclick = () => { 
       switch (cpu.shoot(id)) {
@@ -308,30 +311,29 @@ window.onload = () => {
   cpu.updateScore();
 
   // Add event listeners for buttons 
-  document.getElementById('generate-btn').onclick = () => {
+  qs('#generate-btn').onclick = () => {
     human.generateFleet();
     human.showFleet();
     cpu.generateFleet();
   };
-  document.getElementById('reset-btn').onclick = () => {
+  qs('#reset-btn').onclick = () => {
     location.reload()
   };
-  document.getElementById('test-btn').onclick = () => {
+  qs('#test-btn').onclick = () => {
     endGame('cpu');
   };
   // Popup box adapted from https://html-online.com/articles/simple-popup-box/
-  document.getElementById('trigger_popup_fricc').onclick = () => {
-    document.getElementById('hover_bkgr_fricc').style.display = 'block';
+  qs('#trigger_popup_fricc').onclick = () => {
+    qs('#hover_bkgr_fricc').style.display = 'block';
     console.log('popup');
   };
-  document.getElementById('hover_bkgr_fricc').onclick = () => {
-    document.getElementById('hover_bkgr_fricc').style.display = 'none';
+  qs('#hover_bkgr_fricc').onclick = () => {
+    qs('#hover_bkgr_fricc').style.display = 'none';
   };
-  document.getElementById('popupCloseButton').onclick = () => {
-    document.getElementById('hover_bkgr_fricc').style.display = 'none';
+  qs('#popupCloseButton').onclick = () => {
+    qs('#hover_bkgr_fricc').style.display = 'none';
   };
 }
-
 // -------- Setup CPU player ---------- //
 
 let cpuMemory = [];  // Remembers all moves fired by CPU
@@ -350,7 +352,7 @@ async function playComputerTurn() {
     switch (human.shoot(id)) {
     case 'hit':
       console.log('HIT! Firing again!', id);
-      const el = document.getElementById(id);
+      const el = qs('#' + id);
       el.classList.remove('ship');
       el.classList.add('hit');
       el.innerHTML = icon['boom'];
@@ -361,33 +363,32 @@ async function playComputerTurn() {
       break;
     case 'miss':
       console.log('Missed... end turn');
-      document.getElementById(id).classList.add('miss');
+      qs('#' + id).classList.add('miss');
       showTitleStatus('human', 'miss');
       endTurn = true;
       break;
     }
   }
 }
-
 // ---------- Misc and Helper functions --------------- //
 
 // End game and announce winner ('human' or 'cpu')
 async function endGame(winner) {
-  const divList = document.querySelectorAll('.board div');
+  const divList = qs('.board div');
   for (let div of divList) {
     div.classList.add('no-events');
   }
   await delay(2000);
-  const el = document.getElementById(winner + '-title');
+  const el = qs('#' + winner + '-title');
   el.classList.add('winner');
   el.classList.add('flash');
   el.innerHTML = icon['medal'] + '  Winner!  ' + icon['medal'];
-  document.getElementById('reset-btn').classList.remove('hidden');
+  qs('#reset-btn').classList.remove('hidden');
 }
 
 // Show status on player board after each move (triggered by opponent)
 function showTitleStatus(player, status) {
-  const el = document.getElementById(player + '-title');
+  const el = qs('#' + player + '-title');
   const textPlayer = player === 'human' ? 'Player' : 'Computer';
   let text, textClass;
   if (status === 'hit') {
