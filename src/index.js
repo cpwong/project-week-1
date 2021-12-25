@@ -1,5 +1,4 @@
 const boardSize = 10;
-const charSet = Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ');
 const icon = { 
   medal:'&#129351', anchor:'&#9875', hit:'&#127919', 
   boom:'&#128165', splash:'&#128166', question: '&#10068' };
@@ -29,6 +28,8 @@ const shipTypes = [{
   count: 1
 }]
 
+let isGameOn = false;
+
 /* --------- Shorthand for document.querySelector() ------- */
 
 const qs = function(sel) {
@@ -40,8 +41,22 @@ const qs = function(sel) {
   }
 }
 
-let isGameOn = false;
-
+/* --------------- Class declaration ----------------    
+  Board tile address stored as (x, y) coordinate
+  address. Helper methods to convert between 
+  (x, y) and element id {h/c}{A-J}{0-19}
+-----------------------------------------------------*/
+const charSet = Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ');
+class Position {
+  constructor(prefix, x, y) {
+    this.prefix = prefix;  // 'h' or 'c'
+    this.x = x;            // column
+    this.y = y;            // row
+  }
+  get id() {
+    return (this.prefix + charSet[this.x] + this.y); // e.g. hB10 
+  }
+}
 /* --------------- Class declaration -------------    
   h = human, c = computer/CPU
   Status values stored in playerBoard/cpuBoard:
@@ -54,81 +69,64 @@ let isGameOn = false;
     { type: 'carrier', posList: [] },    
 --------------------------------------------------*/
 class Player {
-  #vsBoard = {};  // Opponent's board
-  #fleet = [];    // Player's fleet
-  userId;         // Player user id, either 'human' or 'cpu'
+  #vsBoard = {};        // Opponent's board
+  #fleet = [];          // Player's fleet
+  userId;               // Player user id, either 'human' or 'cpu'
   constructor(id) {
-    console.log('New Fleet object created, id =', id, this.#vsBoard);
+    console.log('New Fleet object created, id =', id);
     this.userId = id;
   }
   // Returns a list of tiles (posList) where ship is placed in freeTiles 
   #getRandomShipPosList(freeTiles, size) {
+    // console.log('freeTiles', freeTiles);
     let posList = [];
-    let maskList = [];
-    let maskSet = new Set;
     let success = false;
     let attempts = 0;
-    let pre = this.userId[0];  // Prefix from userId, e.g. 'h' or 'c'
-    while (!success && attempts < 99) {
-      let testTile = 
-        freeTiles[Math.floor(Math.random() * freeTiles.length)]
-        .slice(1);  // Remove the prefix before regex      
-      let [x] = testTile.match(/\D+/gi);  // RegEx for non-digits
-      let [y] = testTile.match(/\d+/gi);  // RegEx for digits
-      
-      // Test horizontal placement with same letters (x-axis)
-      posList = [];
-      maskSet.clear();
-      success = true;
-      let yTest = y;
-      for (let j = 0; j < size; j++) {
-        let pos = pre + x + yTest;
-        if (!freeTiles.includes(pos)) {
-          success = false;
-        } else {
-          posList.push(pos);  
-          maskSet.add(pos);
-          maskSet.add(pre + x + (yTest < boardSize - 1 ? Number(yTest) + 1 : yTest));
-          maskSet.add(pre + x + (yTest > 0 ? Number(yTest) - 1 : yTest));
-          let i = charSet.indexOf(x);
-          maskSet.add(pre + (i < boardSize - 1 ? charSet[i + 1] : x) + yTest);
-          maskSet.add(pre + (i > 0 ? charSet[i - 1] : x) + yTest);
-        }
-        yTest++;
-      }
-      if (!success) {  
-        // Test vertical placement with same numbers (y-axis)
-        posList = [];
-        maskSet.clear();
+    while (!success && attempts < 10) {
+      let i = Math.floor(Math.random() * freeTiles.length);
+      let origin = freeTiles[i];
+      // console.log('origin', origin);
+      // Test horizontal and vertical placement 
+      posList = this.#getShipPosition(freeTiles, origin, size, 'horizontal');
+      if (posList.length > 0) {
         success = true;
-        let xTest = x;
-        let i = charSet.indexOf(x);
-        for (let j = 0; j < size; j++) {
-          let pos = pre + xTest + y;
-          console.log('xTest, y =', pos);
-          if (!freeTiles.includes(pos)) {
-            success = false;
-          } else {
-            posList.push(pos);
-            maskSet.add(pos);  
-            maskSet.add(pre + x + (yTest < boardSize - 1 ? Number(yTest) + 1 : yTest));
-            maskSet.add(pre + x + (yTest > 0 ? Number(yTest) - 1 : yTest));
-            let i = charSet.indexOf(x);
-            maskSet.add(pre + (i < boardSize - 1 ? charSet[i + 1] : x) + yTest);
-            maskSet.add(pre + (i > 0 ? charSet[i - 1] : x) + yTest);
-            }
-          i++;
-          xTest = charSet[i];
-        }
+      } else {
+        posList = this.#getShipPosition(freeTiles, origin, size, 'vertical');
+      }
+      if (posList.length > 0) {
+        success = true;
       }
       attempts++;
     }
-    maskList = new Array(...maskSet)  // Spread the set into an array
-    return { posList, maskList };     // Returns an object of 2 properties
+    return posList;     
   }
+  #getShipPosition(freeTiles, origin, size, orientation) {
+    let posList = [];
+    let test = new Position(origin.prefix, origin.x, origin.y);
+    for (let c = 0; c < size; c++) {
+      for (const free of freeTiles) {
+        if (test.x === free.x && test.y === free.y) {
+          const pos = new Position(test.prefix, test.x, test.y);
+          posList.push(pos);  
+          break;
+        } 
+      }
+      // Move along x- or y-axs and check if it exceeds boardSize
+      if (orientation === 'horizontal') {
+        test.x++;                   
+        if (test.x === boardSize)   
+          return [];
+      } else {
+        test.y++;                   
+        if (test.y === boardSize)   
+          return [];
+      }
+    }
+    return posList;
+  }
+
   // Set all board properties to default value (0)
   initVsBoard(parent) {
-    console.log(parent);
     for (let y = 0; y < boardSize; y++) {
       for (let x = 0; x < boardSize; x++) {
         const divId = this.userId[0] + charSet[x] + y;
@@ -141,12 +139,11 @@ class Player {
     }
   }
   // Add ship to fleet, where:
-  addShip(type, posList) {  
-    const newShip = {}
-    Object.defineProperties(newShip, {
-      'type': { value: type },
-      'posList': { value: posList, writable: true }
-    });
+  #addShip(type, posList) {  
+    const newShip = {
+      type: type,
+      posList: [...posList]
+    };
     this.#fleet.push(newShip);
   }
   // Fire on tile and return status: 'hit'/'miss'/'tested'
@@ -165,7 +162,8 @@ class Player {
         filtered out and both results and original posList will be equal. 
         If hit, then replace the posList with filtered list.
       */
-        let result = ship.posList.filter(pos => pos != id );  
+        let result = ship.posList.filter( pos => pos.id != id );  
+        console.log('result',result);
         if (ship.posList.length > result.length) {
           if (result.length > 0) { 
             // Update posList with filtered list
@@ -204,9 +202,9 @@ class Player {
   }
   // Shows location of all ships on the board
   showFleet() {
-    for (const ship of this.#fleet) {
-      for (const id of ship.posList) {
-        const el = qs('#' + id);
+    for (let ship of this.#fleet) {
+      for (let pos of ship.posList) {
+        const el = qs('#' + pos.id);
         el.classList.add('ship');
         el.innerHTML = icon['anchor'];
       }
@@ -214,32 +212,30 @@ class Player {
   }
   // Randomly generate fleet positions
   generateFleet() {
-    this.#fleet = [];  // Clear all ships from fleet
+    this.#fleet = [];  
     // Clear the board by resetting the backgroundColor
     const divList = qs('#' + this.userId + '-board div');
     for (let div of divList) {
       div.classList.remove('hit', 'miss', 'ship');
       div.innerHTML = '';
     }
-    // Generate an array of all available free tile addresses
     let freeTiles = [];
+    let tile;
     for (let y = 0; y < boardSize; y++) {
       for (let x = 0; x < boardSize; x++) {
-        freeTiles.push(this.userId[0] + charSet[x] + y);
+        tile = new Position(this.userId[0], x, y);
+        freeTiles.push(tile);
       }
     }
     // Loop through all ship types and generate valid posList for each ship   
     for (let ship of shipTypes) {
       for (let i = 0; i < ship.count; i++) {
-        let posObj = this.#getRandomShipPosList(freeTiles, ship.size);
+        let posList = this.#getRandomShipPosList(freeTiles, ship.size);
         // Add ship into #fleet property
-        this.addShip(ship.type, posObj.posList);
-        // Remove mask from freeTiles
-        for (let mask of posObj.maskList) {
-          freeTiles = freeTiles.filter(free => free != mask);
-        }
+        this.#addShip(ship.type, posList);
       }
     }
+    console.log('this.#fleet =', this.#fleet);
   }
   // Updates score board after a hit and returns final score.
   updateScore() {
@@ -269,13 +265,17 @@ let cpu = new Player('cpu');
 window.onload = () => {
   console.log('Page loaded..');
 
-  // Populate playing boards with div and assign id co-ordinates 
+  // Initialise human player object
   human.initVsBoard(qs('#human-board'));
-  cpu.initVsBoard(qs('#cpu-board'));
-
   human.generateFleet();
   human.showFleet();
   human.updateScore();
+
+  // Initialise CPU player object
+  cpu.initVsBoard(qs('#cpu-board'));
+  cpu.generateFleet();
+  cpu.updateScore();
+  cpu.showFleet();  // Enable for debugging
 
   // Add event listeners to each div on CPU board
   qs('#cpu-board div').forEach(el => {
@@ -307,9 +307,6 @@ window.onload = () => {
       }
     }
   })
-  cpu.generateFleet();
-  cpu.updateScore();
-
   // Add event listeners for buttons 
   qs('#generate-btn').onclick = () => {
     human.generateFleet();
