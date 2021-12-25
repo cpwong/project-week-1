@@ -71,56 +71,54 @@ class Position {
 class Player {
   #vsBoard = {};        // Opponent's board
   #fleet = [];          // Player's fleet
+  #freeTiles = [];      // Free tiles where ships can be placed
   userId;               // Player user id, either 'human' or 'cpu'
   constructor(id) {
     console.log('New Fleet object created, id =', id);
     this.userId = id;
+    this.prefix = id[0];
   }
   // Returns a list of tiles (posList) where ship is placed in freeTiles 
-  #getRandomShipPosList(freeTiles, size) {
-    // console.log('freeTiles', freeTiles);
+  #getRandomShipPosList( {size} ) {
+    //console.log('size', size);
     let posList = [];
     let success = false;
     let attempts = 0;
-    while (!success && attempts < 10) {
-      let i = Math.floor(Math.random() * freeTiles.length);
-      let origin = freeTiles[i];
-      // console.log('origin', origin);
-      // Test horizontal and vertical placement 
-      posList = this.#getShipPosition(freeTiles, origin, size, 'horizontal');
-      if (posList.length > 0) {
+    while (!success && attempts < 99) {
+      let i = Math.floor(Math.random() * this.#freeTiles.length);
+      let origin = this.#freeTiles[i];
+      // Flip for horizontal or vertical orientation
+      posList = this.#getShipPosition(origin, size, 
+        Math.floor(Math.random()*2) ? 'horizontal' : 'vertical');
+      if (posList.length > 0)
         success = true;
-      } else {
-        posList = this.#getShipPosition(freeTiles, origin, size, 'vertical');
-      }
-      if (posList.length > 0) {
-        success = true;
-      }
       attempts++;
     }
     return posList;     
   }
-  #getShipPosition(freeTiles, origin, size, orientation) {
+  #getShipPosition(origin, size, orientation) {
+    // Check if x- or y-axs exceeds boardSize
+    if ((orientation === 'horizontal') && (origin.x + size >= boardSize))
+      return [];
+    if ((orientation === 'vertical') && (origin.y + size >= boardSize))
+      return [];
     let posList = [];
     let test = new Position(origin.prefix, origin.x, origin.y);
     for (let c = 0; c < size; c++) {
-      for (const free of freeTiles) {
-        if (test.x === free.x && test.y === free.y) {
+      for (const free of this.#freeTiles) {
+        if (test.id === free.id) {
           const pos = new Position(test.prefix, test.x, test.y);
           posList.push(pos);  
           break;
         } 
       }
-      // Move along x- or y-axs and check if it exceeds boardSize
-      if (orientation === 'horizontal') {
-        test.x++;                   
-        if (test.x === boardSize)   
-          return [];
-      } else {
-        test.y++;                   
-        if (test.y === boardSize)   
-          return [];
-      }
+      if (orientation === 'horizontal') 
+        test.x++
+      else
+        test.y++
+    }
+    if (posList.length != size) {
+      return [];
     }
     return posList;
   }
@@ -132,19 +130,49 @@ class Player {
         const divId = this.userId[0] + charSet[x] + y;
         const div = document.createElement('div');
         div.setAttribute('id', divId);
-        // div.innerHTML = divId;  // Show tile ID
         parent.append(div);
         this.#vsBoard[divId] = 0;
       }
     }
   }
-  // Add ship to fleet, where:
+  // Add ship to fleet and update freeTiles mask.
   #addShip(type, posList) {  
     const newShip = {
       type: type,
       posList: [...posList]
     };
     this.#fleet.push(newShip);
+    // Remove occupied + surrounding tiles from freeTiles
+    for (const pos of posList) {
+      const removeTile = rem => {
+        let i = this.#freeTiles.findIndex( tile => tile.id === rem.id);
+        if (i >= 0) {
+          this.#freeTiles.splice(i, 1);
+        }
+      }
+      removeTile(pos);
+      let mask = new Position (this.prefix, pos.x, pos.y);
+      if (pos.y > 0) {  // Up
+        mask.y--;
+        removeTile(mask);
+        mask.y = pos.y;      
+      }
+      if (pos.y <= boardSize) {  // Down
+        mask.y++;
+        removeTile(mask);      
+        mask.y = pos.y;      
+      }
+      if (pos.x > 0) {  // Left
+        mask.x--;
+        removeTile(mask);      
+        mask.x = pos.x;
+      }
+      if (pos.x <= boardSize) {  // Right
+        mask.x++;
+        removeTile(mask);      
+        mask.x = pos.x;
+      }
+    }
   }
   // Fire on tile and return status: 'hit'/'miss'/'tested'
   shoot(id) {
@@ -163,7 +191,6 @@ class Player {
         If hit, then replace the posList with filtered list.
       */
         let result = ship.posList.filter( pos => pos.id != id );  
-        console.log('result',result);
         if (ship.posList.length > result.length) {
           if (result.length > 0) { 
             // Update posList with filtered list
@@ -174,6 +201,7 @@ class Player {
             // Remove sunken ship from fleet if posList is empty
             this.#fleet.splice(i, 1);
           }
+          console.log('Fleet after hit',this.#fleet);
           return 'hit';
         }
         i++;
@@ -212,30 +240,31 @@ class Player {
   }
   // Randomly generate fleet positions
   generateFleet() {
+    // Clear fleet data
     this.#fleet = [];  
+    this.#freeTiles = [];  
     // Clear the board by resetting the backgroundColor
     const divList = qs('#' + this.userId + '-board div');
     for (let div of divList) {
       div.classList.remove('hit', 'miss', 'ship');
       div.innerHTML = '';
     }
-    let freeTiles = [];
     let tile;
     for (let y = 0; y < boardSize; y++) {
       for (let x = 0; x < boardSize; x++) {
         tile = new Position(this.userId[0], x, y);
-        freeTiles.push(tile);
+        this.#freeTiles.push(tile);
       }
     }
     // Loop through all ship types and generate valid posList for each ship   
     for (let ship of shipTypes) {
       for (let i = 0; i < ship.count; i++) {
-        let posList = this.#getRandomShipPosList(freeTiles, ship.size);
+        let posList = this.#getRandomShipPosList(ship);
         // Add ship into #fleet property
         this.#addShip(ship.type, posList);
       }
     }
-    console.log('this.#fleet =', this.#fleet);
+    this.showFleet();  // Enable for debugging
   }
   // Updates score board after a hit and returns final score.
   updateScore() {
@@ -275,7 +304,6 @@ window.onload = () => {
   cpu.initVsBoard(qs('#cpu-board'));
   cpu.generateFleet();
   cpu.updateScore();
-  cpu.showFleet();  // Enable for debugging
 
   // Add event listeners to each div on CPU board
   qs('#cpu-board div').forEach(el => {
@@ -283,7 +311,6 @@ window.onload = () => {
     el.onclick = () => { 
       switch (cpu.shoot(id)) {
       case 'hit':
-        console.log('HIT! Fire again!');
         el.classList.add('hit');
         el.innerHTML = icon['boom'];
         showTitleStatus('cpu', 'hit');
@@ -292,13 +319,11 @@ window.onload = () => {
         };
         break;
       case 'miss':
-        console.log('Missed... end turn');
         el.classList.add('miss');
         showTitleStatus('cpu', 'miss');
         playComputerTurn();
         break;
       case 'tested':
-        console.log('Already fired, try another tile');
         el.classList.add('flash');
         setTimeout(() => {
           el.classList.remove('flash');
