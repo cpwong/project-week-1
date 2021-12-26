@@ -122,19 +122,6 @@ class Player {
     }
     return posList;
   }
-
-  // Set all board properties to default value (0)
-  initVsBoard(parent) {
-    for (let y = 0; y < boardSize; y++) {
-      for (let x = 0; x < boardSize; x++) {
-        const divId = this.userId[0] + charSet[x] + y;
-        const div = document.createElement('div');
-        div.setAttribute('id', divId);
-        parent.append(div);
-        this.#vsBoard[divId] = 0;
-      }
-    }
-  }
   // Add ship to fleet and update freeTiles mask.
   #addShip(type, posList) {  
     const newShip = {
@@ -174,8 +161,21 @@ class Player {
       }
     }
   }
+  // Set all board properties to default value (0)
+  initVsBoard(parent) {
+    for (let y = 0; y < boardSize; y++) {
+      for (let x = 0; x < boardSize; x++) {
+        const divId = this.userId[0] + charSet[x] + y;
+        const div = document.createElement('div');
+        div.setAttribute('id', divId);
+        parent.append(div);
+        this.#vsBoard[divId] = 0;
+      }
+    }
+  }
   // Fire on tile and return status: 'hit'/'miss'/'tested'
   shoot(id) {
+    console.log('shoot', id);
     if (!isGameOn) {
       qs('#generate-btn').classList.add('hidden');
       qs('#reset-btn').classList.remove('hidden');
@@ -183,28 +183,17 @@ class Player {
     }
     if (this.#vsBoard[id] === 0) {
       this.#vsBoard[id] = 1;
-      let i = 0;
-      for (let ship of this.#fleet) { 
-      /* 
-        Filter out all non-matching positions. if no hits, then nothing is 
-        filtered out and both results and original posList will be equal. 
-        If hit, then replace the posList with filtered list.
-      */
-        let result = ship.posList.filter( pos => pos.id != id );  
-        if (ship.posList.length > result.length) {
-          if (result.length > 0) { 
-            // Update posList with filtered list
-            Object.defineProperty(this.#fleet[i], 'posList', { 
-              value: [...result] 
-            });
-          } else {
-            // Remove sunken ship from fleet if posList is empty
-            this.#fleet.splice(i, 1);
-          }
-          console.log('Fleet after hit',this.#fleet);
+      for (const ship of this.#fleet) { 
+        let i = ship.posList.findIndex(pos => {
+          return pos.id === id;
+        })
+        console.log(ship.posList, id, i);
+        if (i >= 0) {
+          // Remove tile from ship and filter out empty posList (sunk)
+          ship.posList.splice(i, 1);  
+          this.#fleet = this.#fleet.filter(ship => ship.posList.length > 0);
           return 'hit';
         }
-        i++;
       }
       return 'miss';
     } else {
@@ -400,14 +389,13 @@ async function endGame(winner) {
   for (let div of divList) {
     div.classList.add('no-events');
   }
-  await delay(2000);
+  await delay(1500);
   const el = qs('#' + winner + '-title');
   el.classList.add('winner');
   el.classList.add('flash');
   el.innerHTML = icon['medal'] + '  Winner!  ' + icon['medal'];
   qs('#reset-btn').classList.remove('hidden');
 }
-
 // Show status on player board after each move (triggered by opponent)
 function showTitleStatus(player, status) {
   const el = qs('#' + player + '-title');
